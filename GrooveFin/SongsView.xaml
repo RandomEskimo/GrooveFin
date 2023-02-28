@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<local:AbstractContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="GrooveFin.SongsView"
+             xmlns:local="clr-namespace:GrooveFin"
+             Title="SongsView">
+    <ScrollView>
+        <VerticalStackLayout Padding="10">
+            <StackLayout Orientation="{OnIdiom Phone=Vertical, Default=Horizontal}" VerticalOptions="Start">
+                <Image x:Name="imgAlbumCover" VerticalOptions="Start" Aspect="AspectFit"/>
+                <VerticalStackLayout Padding="{OnIdiom Phone=0, Default='20,0,0,0'}">
+                    <Label x:Name="lblCollectionName" FontSize="Large" />
+                    <Label x:Name="lblArtist" FontSize="Small" />
+                    <Button x:Name="btnPlayAll" Text="Play All" Clicked="btnPlayAll_Clicked" />
+                </VerticalStackLayout>
+            </StackLayout>
+            <StackLayout x:Name="stkSongs" Padding="0,30,0,0" HorizontalOptions="FillAndExpand"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</local:AbstractContentPage>

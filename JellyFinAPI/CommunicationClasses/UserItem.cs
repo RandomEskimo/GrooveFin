@@ -1,0 +1,24 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace JellyFinAPI.CommunicationClasses
+{
+    public class UserItem
+    {
+        public string? Name { get; set; }
+        public string? ServerId { get; set; }
+        public string? Id { get; set; }
+        public string? ChannelId { get; set; }
+        public bool IsFolder { get; set; }
+        public string? Type { get; set; }
+        public UserData? UserData { get; set; }
+        public string? CollectionType { get; set; }
+        public ImageTags? ImageTags { get; set; }
+        //public List<object>? BackdropImageTags { get; set; }
+        public ImageBlurHashes? ImageBlurHashes { get; set; }
+        public string? LocationType { get; set; }
+    }
+}

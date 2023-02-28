@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="GrooveFin.Views.MiniPlayerView">
+    <Grid x:Name="grdMain">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="70"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Image x:Name="imgAlbumArt" Grid.Column="0" Grid.Row="0">
+            <Image.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+            </Image.GestureRecognizers>
+        </Image>
+        <VerticalStackLayout Grid.Column="1" Grid.Row="0" HorizontalOptions="FillAndExpand" Padding="5">
+            <Label x:Name="lblSongTitle" />
+            <Label x:Name="lblArtist" />
+            <Grid HorizontalOptions="FillAndExpand">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Label x:Name="lblProgress" Grid.Column="0" HorizontalTextAlignment="Start"/>
+                <Label x:Name="lblDuration" Grid.Column="2" HorizontalOptions="EndAndExpand"/>
+            </Grid>
+        </VerticalStackLayout>
+        <Button x:Name="btnPause" Grid.Column="2" Grid.Row="0" Text="Pause" Clicked="btnPause_Clicked" />
+        <BoxView x:Name="bvProgress" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" Color="Red" HeightRequest="3" HorizontalOptions="Start"/>
+    </Grid>
+</ContentView>

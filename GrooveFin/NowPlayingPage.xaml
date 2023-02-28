@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="GrooveFin.NowPlayingPage"
+             xmlns:local="clr-namespace:GrooveFin"
+             Title="NowPlayingPage">
+    <VerticalStackLayout Padding="10">
+        <StackLayout Orientation="{OnIdiom Phone=Vertical, Default=Horizontal}" VerticalOptions="Start">
+            <Image x:Name="imgAlbumCover" VerticalOptions="Start" Aspect="AspectFit" BackgroundColor="Red"/>
+            <VerticalStackLayout Padding="{OnIdiom Phone=0, Default='20,0,0,0'}">
+                <Label x:Name="lblSongName" FontSize="30" HorizontalOptions="CenterAndExpand" Margin="0,20,0,0" />
+                <Label x:Name="lblArtist" FontSize="Small" HorizontalOptions="CenterAndExpand" Margin="0,0,0,20" />
+            </VerticalStackLayout>
+        </StackLayout>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" x:Name="btnPrev" Text="&lt;&lt;" Clicked="btnPrev_Clicked"/>
+            <Button Grid.Column="1" x:Name="btnPause" Text="Pause" Clicked="btnPause_Clicked"/>
+            <Button Grid.Column="2" x:Name="btnNext" Text="&gt;&gt;" Clicked="btnNext_Clicked"/>
+        </Grid>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+            </Grid.ColumnDefinitions>
+            <Label x:Name="lblCurrentPosition" Grid.Column="0" FontSize="Micro" VerticalOptions="CenterAndExpand" />
+            <Slider x:Name="sldProgress" Grid.Column="1" Margin="10,15,10,15" ValueChanged="sldProgress_ValueChanged"/>
+            <Label x:Name="lblSongLength" Grid.Column="2" FontSize="Micro" VerticalOptions="CenterAndExpand" />
+        </Grid>
+    </VerticalStackLayout>
+</ContentPage>
