@@ -11,31 +11,38 @@ namespace GrooveFin.Platforms.Android.Services
 {
 	public class NativeAudioService : INativeAudioService
 	{
-		IAudioActivity? Instance;
+		public static IAudioActivity? AudioActivityInstance;
+		public static NativeAudioService? Instance;
 
-		private MediaPlayer? mediaPlayer => Instance != null && Instance.Binder != null &&
-			Instance.Binder.GetMediaPlayerService() != null ?
-			Instance.Binder.GetMediaPlayerService().mediaPlayer : null;
+		private MediaPlayer? mediaPlayer => AudioActivityInstance != null && AudioActivityInstance.Binder != null &&
+			AudioActivityInstance.Binder.GetMediaPlayerService() != null ?
+			AudioActivityInstance.Binder.GetMediaPlayerService().mediaPlayer : null;
 
 		public bool IsPlaying => mediaPlayer?.IsPlaying ?? false;
 
 		public TimeSpan? CurrentPosition => mediaPlayer?.CurrentPosition is int currentPos ? TimeSpan.FromMilliseconds(currentPos) : null;
 		public event EventHandler<bool>? IsPlayingChanged;
+		public event EventHandler? NextRequested;
+		public event EventHandler? PreviousRequested;
+
+		public NativeAudioService()
+		{
+			Instance = this;
+		}
 
 		public Task InitializeAsync(string audioURI)
 		{
-			if (Instance == null)
+			if (AudioActivityInstance == null)
 			{
 				var activity = CurrentActivity;
-				Instance = activity as IAudioActivity;
+				AudioActivityInstance = activity as IAudioActivity;
 			}
 			else
 			{
-				Instance.Binder.GetMediaPlayerService().isCurrentEpisode = false;
-				Instance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
+				AudioActivityInstance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
 			}
 
-			this.Instance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool e) =>
+			AudioActivityInstance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool e) =>
 			{
 				/*Task.Run(async () => {
 					if (e)
@@ -50,7 +57,7 @@ namespace GrooveFin.Platforms.Android.Services
 				IsPlayingChanged?.Invoke(this, e);
 			};
 
-			Instance.Binder.GetMediaPlayerService().AudioUrl = audioURI;
+			AudioActivityInstance.Binder.GetMediaPlayerService().AudioUrl = audioURI;
 
 			return Task.CompletedTask;
 		}
@@ -59,7 +66,7 @@ namespace GrooveFin.Platforms.Android.Services
 		{
 			if (IsPlaying)
 			{
-				return Instance?.Binder?.GetMediaPlayerService()?.Pause() ?? Task.CompletedTask;
+				return AudioActivityInstance?.Binder?.GetMediaPlayerService()?.Pause() ?? Task.CompletedTask;
 			} 
 
 			return Task.CompletedTask;
@@ -67,7 +74,7 @@ namespace GrooveFin.Platforms.Android.Services
 
 		public async Task PlayAsync(TimeSpan? Position)
 		{
-			if (Instance?.Binder?.GetMediaPlayerService() is MediaPlayerService mediaPlayer)
+			if (AudioActivityInstance?.Binder?.GetMediaPlayerService() is MediaPlayerService mediaPlayer)
 			{
 				await mediaPlayer.Play();
 				if(Position.HasValue)
@@ -79,27 +86,30 @@ namespace GrooveFin.Platforms.Android.Services
 
 		public Task SetMuted(bool Value)
 		{
-			Instance?.Binder?.GetMediaPlayerService()?.SetMuted(Value);
+			AudioActivityInstance?.Binder?.GetMediaPlayerService()?.SetMuted(Value);
 
 			return Task.CompletedTask;
 		}
 
 		public Task SetVolume(int Value)
 		{
-			Instance?.Binder?.GetMediaPlayerService()?.SetVolume(Value);
+			AudioActivityInstance?.Binder?.GetMediaPlayerService()?.SetVolume(Value);
 
 			return Task.CompletedTask;
 		}
 
 		public Task SetCurrentTime(TimeSpan Position)
 		{
-			return Instance?.Binder?.GetMediaPlayerService()?.Seek((int)Position.TotalMilliseconds) ?? Task.CompletedTask;
+			return AudioActivityInstance?.Binder?.GetMediaPlayerService()?.Seek((int)Position.TotalMilliseconds) ?? Task.CompletedTask;
 		}
 
 		public ValueTask DisposeAsync()
 		{
-			Instance?.Binder?.Dispose();
+			AudioActivityInstance?.Binder?.Dispose();
 			return ValueTask.CompletedTask;
 		}
+
+		public void RequestNextSong() => NextRequested?.Invoke(this, EventArgs.Empty);
+		public void RequestPreviousSong() => PreviousRequested?.Invoke(this, EventArgs.Empty);
 	}
 }

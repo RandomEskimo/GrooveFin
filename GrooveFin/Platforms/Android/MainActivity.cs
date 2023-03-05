@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using Android.Net.Sip;
 using Android.OS;
 using GrooveFin.Platforms.Android;
 using GrooveFin.Platforms.Android.Services;
@@ -32,6 +33,21 @@ public class MainActivity : MauiAppCompatActivity, IAudioActivity
 
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+		if (Intent != null)
+		{
+			NativeAudioService.AudioActivityInstance?.Binder?.GetMediaPlayerService()?.HandleIntent(Intent);
+		}
+	}
+
+	protected override void OnNewIntent(Intent? Intent)
+	{
+		base.OnNewIntent(Intent);
+
+		if (Intent != null)
+		{
+			NativeAudioService.AudioActivityInstance?.Binder?.GetMediaPlayerService()?.HandleIntent(Intent);
+		}
 	}
 
 	private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

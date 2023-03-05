@@ -98,7 +98,7 @@ public partial class MainPage : ContentPage
 
     private void lclLogin_LoginSuccess(object sender, EventArgs e)
     {
-        Navigation.PushModalAsync(new AllViews());
+		PushView(new AlbumsPage());
 		stkLogin.IsVisible = false;
 		svForControls.IsVisible = true;
 		mniPlayer.IsVisible = true;

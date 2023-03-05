@@ -36,6 +36,8 @@ namespace GrooveFin.Services
 			AudioService.IsPlayingChanged += AudioService_IsPlayingChanged;
             Looping = true;
             Task.Run(CheckPosition);
+			AudioService.PreviousRequested += (o,e) => PlayNext();
+			AudioService.NextRequested += (o,e) => PlayPrev();
         }
 
 		private static void AudioService_IsPlayingChanged(object? sender, bool e)

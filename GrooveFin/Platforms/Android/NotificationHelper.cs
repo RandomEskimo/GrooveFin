@@ -18,13 +18,14 @@ namespace GrooveFin.Platforms.Android;
 
 public static class NotificationHelper
 {
-	public static readonly string CHANNEL_ID = "location_notification";
-	private const int NotificationId = 1000;
+	public static readonly string CHANNEL_ID = "groovefin_nowplaying_notification";
+	private const int NotificationId = 4242;
 
-	internal static Notification.Action GenerateActionCompat(Context context, int icon, string title, string intentAction)
+	internal static Notification.Action? GenerateActionCompat(Context context, int icon, string title, string intentAction)
 	{
 		Intent intent = new Intent(context, typeof(MediaPlayerService));
 		intent.SetAction(intentAction);
+		//Intent intent = new Intent(intentAction);
 
 		PendingIntentFlags flags = PendingIntentFlags.UpdateCurrent;
 		if (intentAction.Equals(MediaPlayerService.ActionStop))
@@ -32,9 +33,11 @@ public static class NotificationHelper
 
 		flags |= PendingIntentFlags.Mutable;
 
-		PendingIntent pendingIntent = PendingIntent.GetService(context, 1, intent, flags);
-
-		return new Notification.Action.Builder(icon, title, pendingIntent).Build();
+		if (PendingIntent.GetService(context, 1, intent, flags) is PendingIntent pendingIntent)
+		{
+			return new Notification.Action.Builder(icon, title, pendingIntent).Build();
+		}
+		return null;
 	}
 
 	internal static void StopNotification(Context context)
@@ -43,6 +46,7 @@ public static class NotificationHelper
 		nm.CancelAll();
 	}
 
+#pragma warning disable CA1416
 	public static void CreateNotificationChannel(Context context)
 	{
 		if (Build.VERSION.SdkInt < BuildVersionCodes.O)
@@ -53,18 +57,22 @@ public static class NotificationHelper
 			return;
 		}
 
-		var name = "Local Notifications";
-		var description = "The count from MainActivity.";
+		var name = "Groove Fin";
+		var description = "Now Playing";
 		var channel = new NotificationChannel(CHANNEL_ID, name, NotificationImportance.Low)
 		{
 			Description = description
 		};
 		channel.SetSound(null, null);
 
-		var notificationManager = (NotificationManager)context.GetSystemService(Context.NotificationService);
-		notificationManager.CreateNotificationChannel(channel);
+		if (context.GetSystemService(Context.NotificationService) is NotificationManager notificationManager)
+		{
+			notificationManager.CreateNotificationChannel(channel);
+		}
 	}
+#pragma warning restore CA1416
 
+#pragma warning disable CA1416
 	internal static void StartNotification(
 		Context context,
 		MediaMetadata mediaMetadata,
@@ -72,6 +80,14 @@ public static class NotificationHelper
 		object largeIcon,
 		bool isPlaying)
 	{
+		if (Build.VERSION.SdkInt < BuildVersionCodes.O)
+		{
+			// Notification channels are new in API 26 (and not a part of the
+			// support library). There is no need to create a notification
+			// channel on older versions of Android.
+			return;
+		}
+
 		var pendingIntent = PendingIntent.GetActivity(
 			context,
 			0,
@@ -100,6 +116,7 @@ public static class NotificationHelper
 		style.SetShowActionsInCompactView(0, 1, 2);
 		NotificationManagerCompat.From(context).Notify(NotificationId, builder.Build());
 	}
+#pragma warning restore CA1416
 
 	private static void AddPlayPauseActionCompat(
 		Builder builder,

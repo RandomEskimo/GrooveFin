@@ -28,5 +28,7 @@ namespace GrooveFin.Services
 		TimeSpan? CurrentPosition { get; }
 
 		event EventHandler<bool>? IsPlayingChanged;
+		event EventHandler? NextRequested;
+		event EventHandler? PreviousRequested;
 	}
 }

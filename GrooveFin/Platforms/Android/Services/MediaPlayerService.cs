@@ -15,8 +15,8 @@ using AndroidNet = Android.Net;
 
 namespace GrooveFin.Platforms.Android.Services;
 
-[Service(Exported = true)]
-[IntentFilter(new[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious })]
+[Service(Exported = true, Enabled = true)]
+[IntentFilter(new string[] { ActionPlay, ActionPause, ActionStop, ActionTogglePlayback, ActionNext, ActionPrevious })]
 public class MediaPlayerService : Service,
    AudioManager.IOnAudioFocusChangeListener,
    MediaPlayer.IOnBufferingUpdateListener,
@@ -25,12 +25,12 @@ public class MediaPlayerService : Service,
    MediaPlayer.IOnPreparedListener
 {
 	//Actions
-	public const string ActionPlay = "com.xamarin.action.PLAY";
-	public const string ActionPause = "com.xamarin.action.PAUSE";
-	public const string ActionStop = "com.xamarin.action.STOP";
-	public const string ActionTogglePlayback = "com.xamarin.action.TOGGLEPLAYBACK";
-	public const string ActionNext = "com.xamarin.action.NEXT";
-	public const string ActionPrevious = "com.xamarin.action.PREVIOUS";
+	public const string ActionPlay = "net.tremayne.groovefin.action.PLAY";
+	public const string ActionPause = "net.tremayne.groovefin.action.PAUSE";
+	public const string ActionStop = "net.tremayne.groovefin.action.STOP";
+	public const string ActionTogglePlayback = "net.tremayne.groovefin.action.TOGGLEPLAYBACK";
+	public const string ActionNext = "net.tremayne.groovefin.action.NEXT";
+	public const string ActionPrevious = "net.tremayne.groovefin.action.PREVIOUS";
 
 	public MediaPlayer mediaPlayer;
 	private AudioManager audioManager;
@@ -52,8 +52,6 @@ public class MediaPlayerService : Service,
 	public event PlayingChangedEventHandler PlayingChanged;
 
 	public string AudioUrl;
-
-	public bool isCurrentEpisode = true;
 
 	private readonly Handler PlayingHandler;
 	private readonly Java.Lang.Runnable PlayingHandlerRunnable;
@@ -81,7 +79,7 @@ public class MediaPlayerService : Service,
 
 			if (MediaPlayerState == PlaybackStateCode.Playing)
 			{
-				PlayingHandler.PostDelayed(PlayingHandlerRunnable, 250);
+				PlayingHandler.PostDelayed(PlayingHandlerRunnable!, 250);
 			}
 		});
 
@@ -237,16 +235,16 @@ public class MediaPlayerService : Service,
 		}
 	}
 
-	public int Duration
+	public TimeSpan Duration
 	{
 		get
 		{
 			if (mediaPlayer == null
 				|| MediaPlayerState != PlaybackStateCode.Playing
 					&& MediaPlayerState != PlaybackStateCode.Paused)
-				return 0;
+				return TimeSpan.Zero;
 			else
-				return mediaPlayer.Duration;
+				return TimeSpan.FromMilliseconds(mediaPlayer.Duration);
 		}
 	}
 
@@ -308,13 +306,11 @@ public class MediaPlayerService : Service,
 		if (mediaSession == null)
 			InitMediaSession();
 
-		if (mediaPlayer.IsPlaying && isCurrentEpisode)
+		if (mediaPlayer.IsPlaying)
 		{
 			UpdatePlaybackState(PlaybackStateCode.Playing);
 			return;
 		}
-
-		isCurrentEpisode = true;
 
 		await PrepareAndPlayMediaPlayerAsync();
 	}
@@ -508,13 +504,15 @@ public class MediaPlayerService : Service,
 	{
 		if (mediaSession == null)
 			return;
-
-		NotificationHelper.StartNotification(
-			ApplicationContext,
-			mediaController.Metadata,
-			mediaSession,
-			Cover,
-			MediaPlayerState == PlaybackStateCode.Playing);
+		if (ApplicationContext != null && mediaController.Metadata != null)
+		{
+			NotificationHelper.StartNotification(
+				ApplicationContext,
+				mediaController.Metadata,
+				mediaSession,
+				Cover,
+				MediaPlayerState == PlaybackStateCode.Playing);
+		}
 	}
 
 	internal void SetMuted(bool value)
@@ -562,12 +560,13 @@ public class MediaPlayerService : Service,
 		return base.OnStartCommand(intent, flags, startId);
 	}
 
-	private void HandleIntent(Intent intent)
+	public void HandleIntent(Intent intent)
 	{
 		if (intent == null || intent.Action == null)
 			return;
 
 		string action = intent.Action;
+		System.Diagnostics.Debug.WriteLine($"********** INTENT *********** {action}");
 
 		if (action.Equals(ActionPlay))
 		{
@@ -579,15 +578,21 @@ public class MediaPlayerService : Service,
 		}
 		else if (action.Equals(ActionPrevious))
 		{
-			mediaController.GetTransportControls().SkipToPrevious();
+			//TODO: call out to maui code
+			//mediaController.GetTransportControls().SkipToPrevious();
+			NativeAudioService.Instance?.RequestPreviousSong();
 		}
 		else if (action.Equals(ActionNext))
 		{
-			mediaController.GetTransportControls().SkipToNext();
+			//TODO: call out to maui code
+			//mediaController.GetTransportControls().SkipToNext();
+			NativeAudioService.Instance?.RequestNextSong();
 		}
 		else if (action.Equals(ActionStop))
 		{
-			mediaController.GetTransportControls().Stop();
+			//TODO: call out to maui code
+			//mediaController.GetTransportControls().Stop();
+
 		}
 	}
 
