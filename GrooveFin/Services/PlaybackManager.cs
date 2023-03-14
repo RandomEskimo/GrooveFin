@@ -38,19 +38,20 @@ namespace GrooveFin.Services
             Task.Run(CheckPosition);
 			AudioService.PreviousRequested += (o,e) => PlayNext();
 			AudioService.NextRequested += (o,e) => PlayPrev();
+            AudioService.SongFinished += (o, e) => PlayNext();
         }
 
 		private static void AudioService_IsPlayingChanged(object? sender, bool e)
 		{
-			if(CurrentSongDuration is TimeSpan duration && AudioService.CurrentPosition >= duration.Subtract(TimeSpan.FromSeconds(1)))
-            {
-                SongFinished?.Invoke(null, EventArgs.Empty);
-                PlayNext();
-            }
-            else
-            {
+			//if(CurrentSongDuration is TimeSpan duration && AudioService.CurrentPosition >= duration.Subtract(TimeSpan.FromSeconds(1)))
+            //{
+            //    SongFinished?.Invoke(null, EventArgs.Empty);
+            //    PlayNext();
+            //}
+            //else
+            //{
                 PlayStateChanged?.Invoke(null, EventArgs.Empty);
-            }
+            //}
 		}
 
 		private static async void CheckPosition()
@@ -83,6 +84,10 @@ namespace GrooveFin.Services
             if (App.Jellyfin != null && CurrentSong != null && CurrentSong.Id != null)
             {
 				string songUrl = App.Jellyfin.Songs.MakeSongUrl(CurrentSong.Id);
+                if(await CacheAccess.IsSongDownloadedAsync(CurrentSong.Id))
+                {
+                    songUrl = CacheAccess.GetDownloadedSongPath(CurrentSong.Id);
+                }
 				await AudioService.InitializeAsync(songUrl);
                 await AudioService.PlayAsync();
                 if(CurrentSong.AlbumId != null)

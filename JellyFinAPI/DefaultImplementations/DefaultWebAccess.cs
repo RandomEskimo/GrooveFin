@@ -49,6 +49,10 @@ namespace JellyFinAPI.DefaultImplementations
                 response.Content.ReadAsStream().CopyTo(memStr);
                 return memStr.ToArray();
             }
+            else if(response.StatusCode == HttpStatusCode.PartialContent)
+            {
+                throw new Exception("Partial content!!!!!!!!!!!");
+            }
             else
             {
                 System.Diagnostics.Debug.WriteLine($"Received status code: {(int)response.StatusCode} for request: {Url}");

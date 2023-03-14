@@ -11,5 +11,6 @@ namespace JellyFinAPI.Interfaces
     {
         Task<SongsResponse?> GetSongs(string CollectionId);
         string MakeSongUrl(string SongId);
+        Task<byte[]?> DownloadSong(string SongId);
     }
 }

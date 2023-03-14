@@ -111,6 +111,9 @@
 	  <Compile Update="ArtistsPage.xaml.cs">
 	    <DependentUpon>ArtistsPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Dashboard.xaml.cs">
+	    <DependentUpon>Dashboard.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\ArtistRowItem.xaml.cs">
 	    <DependentUpon>ArtistRowItem.xaml</DependentUpon>
 	  </Compile>
@@ -126,8 +129,14 @@
 	  <MauiXaml Update="ArtistsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Downloads.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="LoginView.xaml">
 	    <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Dashboard.xaml">
+	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="NowPlayingPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>

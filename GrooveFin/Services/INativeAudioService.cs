@@ -8,7 +8,7 @@ namespace GrooveFin.Services
 {
 	public interface INativeAudioService
 	{
-		Task InitializeAsync(string AudioURI);
+		Task InitializeAsync(string AudioURI, string? SongName = null, string? Artist = null);
 
 		Task PlayAsync(TimeSpan? Position);
 		Task PlayAsync();
@@ -28,6 +28,7 @@ namespace GrooveFin.Services
 		TimeSpan? CurrentPosition { get; }
 
 		event EventHandler<bool>? IsPlayingChanged;
+		event EventHandler? SongFinished;
 		event EventHandler? NextRequested;
 		event EventHandler? PreviousRequested;
 	}

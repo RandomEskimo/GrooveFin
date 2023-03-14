@@ -24,8 +24,11 @@ namespace GrooveFin
         private static string ImageCache = $"{AppDir}/Images";
         private static string SmallImageCache = $"{AppDir}/SmallImages";
         private static string SongsCache = $"{AppDir}/Songs";
+        private static string SongDownloadDir = $"{AppDir}/Downloads";
 
         private static Dictionary<string, string>? CacheValues;
+        private static HashSet<string>? DownloadedSongs;
+        private static object DownloadedSongsLockObj = new object();
 
         private const long MaxInMemCacheSize = 10 * 1024 * 1024; //~10mb
         private static Dictionary<string, Tuple<DateTime, byte[]>> InMemSmallImageCache;
@@ -281,10 +284,57 @@ namespace GrooveFin
                 MaxAgeForData
                 );
         }
-		#endregion
+        #endregion
 
-		#region DataCache
-		private static async Task<T?> GetCachedData<T>(string CachePath, Func<IJellyfinAccess, Task<T?>> GetFromAPI, TimeSpan DataExpiry)
+        #region Song Downloads
+        public static void AddSongDownload(string SongId, byte[] SongData)
+        {
+            if(!Directory.Exists(SongDownloadDir))
+                Directory.CreateDirectory(SongDownloadDir);
+            File.WriteAllBytes($"{SongDownloadDir}/{SongId}", SongData);
+            lock(DownloadedSongsLockObj)
+            {
+                if (DownloadedSongs != null)
+                    DownloadedSongs.Add(SongId);
+            }
+        }
+
+        public static string GetDownloadedSongPath(string SongId) => $"{SongDownloadDir}/{SongId}";
+
+        public static Task<bool> IsSongDownloadedAsync(string SongId) =>
+            AreSongsDownloadedAsync(new List<string>() { SongId });
+
+        public static Task<bool> AreSongsDownloadedAsync(List<string> SongIds)
+        {
+            lock(DownloadedSongsLockObj)
+            {
+                if(DownloadedSongs != null)
+                    return Task.FromResult(SongIds.All(DownloadedSongs.Contains));
+            }
+	        return Task.Run(() =>
+			{
+				lock (DownloadedSongsLockObj)
+				{
+					if (DownloadedSongs == null)
+					{
+						DownloadedSongs = new HashSet<string>();
+						if (!Directory.Exists(SongDownloadDir))
+							Directory.CreateDirectory(SongDownloadDir);
+						string[] songs = Directory.GetFiles(SongDownloadDir);
+                        foreach(var songPath in songs)
+                        {
+                            string songId = Path.GetFileName(songPath);
+                            DownloadedSongs.Add(songId);
+                        }
+					}
+					return SongIds.All(DownloadedSongs.Contains);
+				}
+			});
+        }
+        #endregion
+
+        #region DataCache
+        private static async Task<T?> GetCachedData<T>(string CachePath, Func<IJellyfinAccess, Task<T?>> GetFromAPI, TimeSpan DataExpiry)
         {
             T? cachedData = default;
             if (File.Exists(CachePath))

@@ -25,6 +25,7 @@ public partial class MainPage : ContentPage
 		Views.Push(NewView);
 		stkForControls.Children.Clear();
 		stkForControls.Children.Add(NewView);
+		ResetScroll();
 		NewView.OnAppearing();
 	}
 
@@ -39,11 +40,17 @@ public partial class MainPage : ContentPage
 		if (Views.Count > 0 && CurrentView != null)
 		{
 			stkForControls.Children.Add(CurrentView);
+			ResetScroll();
 			CurrentView?.OnAppearing();
 			return true;
 		}
 		else
 			return false;
+	}
+
+	private void ResetScroll()
+	{
+		svForControls.ScrollToAsync(svForControls.ScrollX, svForControls.ScrollY, false);
 	}
 
 	protected override bool OnBackButtonPressed()
@@ -91,7 +98,7 @@ public partial class MainPage : ContentPage
 				stkLogin.IsVisible = false;
 				svForControls.IsVisible = true;
 				mniPlayer.IsVisible = true;
-				PushView(new AlbumsPage());
+				PushView(new Dashboard());
 			}
 		}
     }

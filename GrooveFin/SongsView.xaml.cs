@@ -47,6 +47,11 @@ public partial class SongsView : AbstractContentPage, IDisposable
 					songRow.PlayClicked += SongRow_PlayClicked;
                     stkSongs.Children.Add(songRow);
                 });
+                if(songs.Items != null && await CacheAccess.AreSongsDownloadedAsync(songs.Items.Select(s => s.Id).ToList()!))
+                {
+                    btnDownloadAll.Text = "Downloaded";
+                    btnDownloadAll.IsEnabled = false;
+                }
             }
             if(await imageTask is string path)
             {
@@ -92,4 +97,13 @@ public partial class SongsView : AbstractContentPage, IDisposable
 			Navigation.PushModalAsync(new NowPlayingPage());
 		}
 	}
+
+	private void btnDownloadAll_Clicked(object sender, EventArgs e)
+	{
+        Songs?.ForEach(song =>
+        {
+            if (song.Id is string songId && song.Name is string songName && song.Artists?.FirstOrDefault() is string artist)
+                _=SongDownloadService.AddToDownloadQueue(songId, songName, artist);
+        });
+    }
 }

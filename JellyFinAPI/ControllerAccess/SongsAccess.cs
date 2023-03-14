@@ -17,7 +17,15 @@ namespace JellyFinAPI.ControllerAccess
             this.Access = Access;
         }
 
-        public Task<SongsResponse?> GetSongs(string CollectionId) =>
+		public Task<byte[]?> DownloadSong(string SongId) => 
+            Access.WebAccess.MakeBinaryRequest(
+                MakeSongUrl(SongId), 
+                new Dictionary<string, string>(),
+                "GET", 
+                null
+            );
+
+		public Task<SongsResponse?> GetSongs(string CollectionId) =>
             Access.WebAccess.MakeJsonRequest<SongsResponse?>(
                 $"{Access.ServerAddress}/Users/{Access.UserId}/Items?ParentId={CollectionId}&SortOrder=Ascending&SortBy=SortName",
                 JellyfinAccessCreator.BuildHeaders(Access.Details, Access.AccessToken),

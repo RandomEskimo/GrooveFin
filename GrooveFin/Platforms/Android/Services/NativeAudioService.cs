@@ -1,111 +1,102 @@
 ﻿using Android.Media;
 using GrooveFin.Services;
+using AndroidNet = Android.Net;
+using AndroidApp = Android.App;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.Maui.ApplicationModel.Platform;
+using GrooveFin.Helpers;
 
 namespace GrooveFin.Platforms.Android.Services
 {
 	public class NativeAudioService : INativeAudioService
 	{
-		public static IAudioActivity? AudioActivityInstance;
+		private AudioPlayer? Player;
+
+		public string? CurrentSongTitle;
+		public string? CurrentSongArtist;
+		public string? CurrentSongUri;
+
 		public static NativeAudioService? Instance;
 
-		private MediaPlayer? mediaPlayer => AudioActivityInstance != null && AudioActivityInstance.Binder != null &&
-			AudioActivityInstance.Binder.GetMediaPlayerService() != null ?
-			AudioActivityInstance.Binder.GetMediaPlayerService().mediaPlayer : null;
-
-		public bool IsPlaying => mediaPlayer?.IsPlaying ?? false;
-
-		public TimeSpan? CurrentPosition => mediaPlayer?.CurrentPosition is int currentPos ? TimeSpan.FromMilliseconds(currentPos) : null;
 		public event EventHandler<bool>? IsPlayingChanged;
 		public event EventHandler? NextRequested;
 		public event EventHandler? PreviousRequested;
+		public event EventHandler? SongFinished;
+
+		public bool IsPlaying => Player?.IsPlaying ?? false;
+
+		public TimeSpan? CurrentPosition => Player?.CurrentPosition;
 
 		public NativeAudioService()
 		{
 			Instance = this;
 		}
 
-		public Task InitializeAsync(string audioURI)
+		public async Task InitializeAsync(string audioURI, string? SongName = null, string? Artist = null)
 		{
-			if (AudioActivityInstance == null)
+			InitPlayer();
+			if (await (Player?.Play(audioURI) ?? Task.FromResult(false)))
 			{
-				var activity = CurrentActivity;
-				AudioActivityInstance = activity as IAudioActivity;
+				CurrentSongUri = audioURI;
+				CurrentSongTitle = SongName;
+				CurrentSongArtist = Artist;
 			}
 			else
 			{
-				AudioActivityInstance.Binder.GetMediaPlayerService().UpdatePlaybackStateStopped();
+				CurrentSongUri = null;
+				CurrentSongTitle = null;
+				CurrentSongArtist = null;
 			}
+		}
 
-			AudioActivityInstance.Binder.GetMediaPlayerService().PlayingChanged += (object sender, bool e) =>
+		private void InitPlayer()
+		{
+			if (Player == null)
 			{
-				/*Task.Run(async () => {
-					if (e)
-					{
-						await this.PlayAsync();
-					}
-					else
-					{
-						await this.PauseAsync();
-					}
-				});*/
-				IsPlayingChanged?.Invoke(this, e);
-			};
-
-			AudioActivityInstance.Binder.GetMediaPlayerService().AudioUrl = audioURI;
-
-			return Task.CompletedTask;
+				Player = new AudioPlayer();
+				Player.FinishedPlaying += (o, e) => SongFinished?.Invoke(this, EventArgs.Empty);
+				Player.PlayStateChanged += (o, e) => IsPlayingChanged?.Invoke(this, Player.IsPlaying);
+			}
 		}
 
 		public Task PauseAsync()
 		{
-			if (IsPlaying)
-			{
-				return AudioActivityInstance?.Binder?.GetMediaPlayerService()?.Pause() ?? Task.CompletedTask;
-			} 
-
+			Player?.Pause();
 			return Task.CompletedTask;
 		}
 
 		public async Task PlayAsync(TimeSpan? Position)
 		{
-			if (AudioActivityInstance?.Binder?.GetMediaPlayerService() is MediaPlayerService mediaPlayer)
-			{
-				await mediaPlayer.Play();
-				if(Position.HasValue)
-					await mediaPlayer.Seek((int)Position.Value.TotalMilliseconds);
-			}
+			if(Player != null && Position.HasValue)
+				await Player.SeekAsync(Position.Value);
+			Player?.Play();
 		}
 
 		public Task PlayAsync() => PlayAsync(null);
 
 		public Task SetMuted(bool Value)
 		{
-			AudioActivityInstance?.Binder?.GetMediaPlayerService()?.SetMuted(Value);
-
+			Player?.SetVolume(Value ? 1.0f : 0.0f);
 			return Task.CompletedTask;
 		}
 
 		public Task SetVolume(int Value)
 		{
-			AudioActivityInstance?.Binder?.GetMediaPlayerService()?.SetVolume(Value);
-
+			Player?.SetVolume(Value / 100.0f);
 			return Task.CompletedTask;
 		}
 
-		public Task SetCurrentTime(TimeSpan Position)
+		public async Task SetCurrentTime(TimeSpan Position)
 		{
-			return AudioActivityInstance?.Binder?.GetMediaPlayerService()?.Seek((int)Position.TotalMilliseconds) ?? Task.CompletedTask;
+			await (Player?.SeekAsync(Position) ?? Task.CompletedTask);
 		}
 
 		public ValueTask DisposeAsync()
 		{
-			AudioActivityInstance?.Binder?.Dispose();
 			return ValueTask.CompletedTask;
 		}
 

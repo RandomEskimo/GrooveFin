@@ -12,6 +12,7 @@
                     <Label x:Name="lblCollectionName" FontSize="Large" />
                     <Label x:Name="lblArtist" FontSize="Small" />
                     <Button x:Name="btnPlayAll" Text="Play All" Clicked="btnPlayAll_Clicked" />
+                    <Button x:Name="btnDownloadAll" Text="Download All" Clicked="btnDownloadAll_Clicked"/>
                 </VerticalStackLayout>
             </StackLayout>
             <StackLayout x:Name="stkSongs" Padding="0,30,0,0" HorizontalOptions="FillAndExpand"/>
